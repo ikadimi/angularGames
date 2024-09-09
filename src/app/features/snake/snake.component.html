@@ -1,0 +1,16 @@
+<section>
+    <h2>SNAKE GAME</h2>
+    <div class="board">
+        <div *ngFor="let cell of board;trackBy: trackByIndex" [ngClass]="{ 'snake': cell === 1, 'food': cell === 2 }" class="cell"></div>
+    </div>
+    <app-modal>
+        <ng-container *ngIf="isGameOver; else paused">
+            <h3>GAME OVER</h3>
+            <p>Press any key to restart</p>
+        </ng-container>
+        <ng-template #paused>
+            <h3>GAME IS PAUSED</h3>
+            <p>Press space to resume</p>
+        </ng-template>
+    </app-modal>
+</section>

@@ -1,0 +1,12 @@
+<section>
+    <h2>XO GAME</h2>
+    <div class="board">
+        <div *ngFor="let cell of board; let i = index" class="cell" (click)="playTurn(i)">
+            {{ cell == 1 ? 'X' : cell == 2 ? 'O' : '' }}
+        </div>
+    </div>
+    <div>
+        <h3 *ngIf="boardService.gameOver">Winner is: {{ getPlayer() }}</h3>
+        <button *ngIf="boardService.gameOver" (click)="resetGame()">RESET</button>
+    </div>
+</section>
