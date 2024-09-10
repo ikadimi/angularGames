@@ -10,6 +10,13 @@ export type Position = {
     end: number;
 }
 
+export enum gameObjects {
+    head = 1,
+    tail,
+    food,
+    board
+}
+
 export type Snake = {
     head: number;
     tail: number[];
@@ -19,7 +26,7 @@ export type Snake = {
 export type Board = {
     size: number;
     rowLength: number;
-    gameBoard: Array<0 | 1 | 2>;
+    gameBoard: Array<gameObjects>;
 }
 
 export type gameState = {

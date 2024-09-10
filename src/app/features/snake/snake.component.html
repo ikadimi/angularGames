@@ -1,7 +1,7 @@
 <section>
     <h2>SNAKE GAME</h2>
     <div class="board">
-        <div *ngFor="let cell of board;trackBy: trackByIndex" [ngClass]="{ 'snake': cell === 1, 'food': cell === 2 }" class="cell"></div>
+        <div *ngFor="let cell of board;trackBy: trackByIndex" [ngClass]="{ 'head': cell === 1, 'tail': cell === 2, 'food': cell === 3 }" class="cell"></div>
     </div>
     <app-modal>
         <ng-container *ngIf="isGameOver; else paused">

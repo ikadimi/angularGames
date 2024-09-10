@@ -1,9 +1,10 @@
 import { Component, HostListener, Inject } from '@angular/core';
 import { SnakeService } from './services/snake.service';
 import { CommonModule } from '@angular/common';
-import { Direction } from './models/snake.models';
+import { Direction, gameObjects } from './models/snake.models';
 import { ModalService } from '../../shared/modal/services/modal.service';
 import { ModalComponent } from '../../shared/modal/modal.component';
+import { debounce } from '../../shared/helpers';
 
 @Component({
   selector: 'snake-game',
@@ -14,17 +15,18 @@ import { ModalComponent } from '../../shared/modal/modal.component';
   providers: [SnakeService, { provide: Window, useValue: window }],
 })
 export class SnakeComponent {
-  board: Array<0 | 1 | 2> = [];
-  timeoutId: ReturnType<typeof setTimeout> | null = null;
+  board: Array<gameObjects> = [];
   isGameOver: boolean = false;
+  isGamePaused: boolean = false;
+  debouncedRequestAnimationFrame: Function = () => {};
 
   constructor(public snakeService: SnakeService, public modalService: ModalService, @Inject(Window) public window: Window) {
+    this.debouncedRequestAnimationFrame = debounce(this.window.requestAnimationFrame.bind(this.window), 200);
     this.board = this.snakeService.getBoard();
     this.window.requestAnimationFrame(() => {
       this.update();
     });
     this.snakeService.gameOverSubject.subscribe(() => {
-      console.log('game over');
       this.pauseGame();
       this.isGameOver = true;
     });
@@ -40,38 +42,35 @@ export class SnakeComponent {
     }
     switch (event.key) {
       case 'ArrowUp':
-        this.snakeService.changeDirection(Direction.Up);
+        this.snakeService.throttledChangeDirection(Direction.Up);
         break;
       case 'ArrowDown':
-        this.snakeService.changeDirection(Direction.Down);
+        this.snakeService.throttledChangeDirection(Direction.Down);
         break;
       case 'ArrowLeft':
-        this.snakeService.changeDirection(Direction.Left);
+        this.snakeService.throttledChangeDirection(Direction.Left);
         break;
       case 'ArrowRight':
-        this.snakeService.changeDirection(Direction.Right);
+        this.snakeService.throttledChangeDirection(Direction.Right);
         break;
       // pause game when space is pressed
       case ' ':
-        if (this.timeoutId) {
-          this.pauseGame();
-        } else {
+        if (this.isGamePaused) {
           this.resumeGame();
+        } else {
+          this.pauseGame();
         }
         break;
     }
   }
 
   pauseGame() {
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-
+    this.isGamePaused = true;
     this.modalService.open();
   }
 
   resumeGame() {
+    this.isGamePaused = false;
     this.modalService.close();
     this.update();
   }
@@ -81,13 +80,10 @@ export class SnakeComponent {
   };
 
   update() {
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-    }
-    if (!this.isGameOver) {
+    if (!this.isGameOver && !this.isGamePaused) {
       this.snakeService.updateGame();
       this.board = this.snakeService.getBoard();
-      this.timeoutId = setTimeout(() => this.window.requestAnimationFrame(this.update.bind(this)), 200);
+      this.debouncedRequestAnimationFrame(this.update.bind(this));
     }
   }
 }

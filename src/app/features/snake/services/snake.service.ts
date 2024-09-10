@@ -1,6 +1,7 @@
 import { Injectable  } from "@angular/core";
-import { Board, Direction, gameState, Snake } from "../models/snake.models";
+import { Board, Direction, gameObjects, gameState, Snake } from "../models/snake.models";
 import { Subject } from "rxjs";
+import { throttle } from "../../../shared/helpers";
 
 @Injectable({
     providedIn: 'root'
@@ -25,14 +26,16 @@ export class SnakeService {
     // game over state
     gameOverSubject = new Subject<void>();
     constructor() { }
-
-    getBoard(): Array<0 | 1 | 2> {
+    
+    getBoard(): Array<gameObjects> {
         return this.board.gameBoard;
     }
 
     initialiseBoard(): void {
         this.board.gameBoard = new Array(this.board.size).fill(0);
     }
+
+    throttledChangeDirection = throttle(this.changeDirection.bind(this), 200);
 
     changeDirection(direction: Direction): void {
         if (direction === Direction.Left && this.gameState.direction === Direction.Right) {
@@ -95,12 +98,14 @@ export class SnakeService {
 
     fillBoard(): void {
         for (let i = 0; i < this.board.size; i++) {
-            if (this.snake.tail.includes(i)) {
-                this.board.gameBoard[i] = 1;
+            if (this.snake.head === i) {
+                this.board.gameBoard[i] = gameObjects.head;
+            } else if (this.snake.tail.includes(i)) {
+                this.board.gameBoard[i] = gameObjects.tail;
             } else if (i === this.gameState.food) {
-                this.board.gameBoard[i] = 2;
+                this.board.gameBoard[i] = gameObjects.food;
             } else {
-                this.board.gameBoard[i] = 0;
+                this.board.gameBoard[i] = gameObjects.board;
             }
         }
     }
@@ -115,15 +120,14 @@ export class SnakeService {
     }
 
     updateGame(): void {
+        this.updatePosition();
+        this.spawnFood();
+        this.fillBoard();
+        this.foodEaten();
+
         if (this.checkCollision()) {
             this.gameState.gameOver = true;
             this.gameOverSubject.next();
-            this.resetGame();
-        } else {
-            this.spawnFood();
-            this.updatePosition();
-            this.fillBoard();
-            this.foodEaten();
         }
     }
 }

@@ -19,7 +19,11 @@
     cursor: pointer;
 }
 
-.snake {
+.head {
+    background-color: rgb(1, 38, 47);
+}
+
+.tail {
     background-color: #000;
 }
 
